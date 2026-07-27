@@ -3,6 +3,7 @@ const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs');
 const http = require('http');
+const https = require('https');
 const crypto = require('crypto');
 const { WebSocketServer } = require('ws');
 
@@ -84,14 +85,22 @@ wss.on('connection', (ws, req) => {
   }
 });
 
-// Self ping — server kabhi nahi soega
-setInterval(() => {
-  fetch(`http://localhost:${PORT}/ping`)
-    .then(() => console.log('Self ping sent'))
-    .catch(() => {});
-}, 10 * 60 * 1000);
+// -------------------------------------------------------------
+// 🚀 ALWAYS-ACTIVE KEEP-ALIVE SYSTEM (Render Anti-Sleep Engine)
+// -------------------------------------------------------------
+app.get('/ping', (req, res) => res.json({ status: 'awake', time: new Date() }));
 
-app.get('/ping', (req, res) => res.json({ status: 'awake' }));
+const RENDER_PUBLIC_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
+
+setInterval(() => {
+  const httpModule = RENDER_PUBLIC_URL.startsWith('https') ? https : http;
+  
+  httpModule.get(`${RENDER_PUBLIC_URL}/ping`, (res) => {
+    console.log(`[KEEP-ALIVE] Pinged successfully. Status: ${res.statusCode}`);
+  }).on('error', (err) => {
+    console.error('[KEEP-ALIVE] Ping failed:', err.message);
+  });
+}, 4 * 60 * 1000); // Trigger har 4 min pe (15 min sleep limit se pehle)
 
 // Register device
 app.post('/register', (req, res) => {

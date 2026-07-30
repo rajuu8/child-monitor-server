@@ -92,6 +92,7 @@ app.get('/ping', (req, res) => res.json({ status: 'awake', time: new Date() }));
 
 const RENDER_PUBLIC_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
 
+// Existing 4‑minute keep‑alive (kept as is)
 setInterval(() => {
   const httpModule = RENDER_PUBLIC_URL.startsWith('https') ? https : http;
   
@@ -101,6 +102,31 @@ setInterval(() => {
     console.error('[KEEP-ALIVE] Ping failed:', err.message);
   });
 }, 4 * 60 * 1000); // Trigger har 4 min pe (15 min sleep limit se pehle)
+
+// ---------- ADDED: AGGRESSIVE KEEP-ALIVE (har 2 min with retry) ----------
+setInterval(() => {
+  const httpModule = RENDER_PUBLIC_URL.startsWith('https') ? https : http;
+  
+  httpModule.get(`${RENDER_PUBLIC_URL}/ping`, (res) => {
+    console.log(`✅ [PING SUCCESS] ${new Date().toISOString()} - Status: ${res.statusCode}`);
+  }).on('error', (err) => {
+    console.error(`❌ [PING FAILED] ${new Date().toISOString()} - Error: ${err.message}`);
+    // Retry immediately on error
+    setTimeout(() => {
+      httpModule.get(`${RENDER_PUBLIC_URL}/ping`, () => {
+        console.log('🔄 Retry success');
+      }).on('error', () => {});
+    }, 5000);
+  }).setTimeout(10000); // 10 sec timeout
+}, 2 * 60 * 1000); // Har 2 minutes
+
+// ---------- ADDED: BACKUP PING (har 3 minute) ----------
+setInterval(() => {
+  const httpModule = RENDER_PUBLIC_URL.startsWith('https') ? https : http;
+  httpModule.get(`${RENDER_PUBLIC_URL}/ping`, () => {
+    console.log('🔄 [BACKUP PING] Executed');
+  }).on('error', () => {}).setTimeout(10000);
+}, 3 * 60 * 1000);
 
 // Register device
 app.post('/register', (req, res) => {

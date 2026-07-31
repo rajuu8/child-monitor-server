@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Child Monitor - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --darker: #111827;
+            --light: #f3f4f6;
+            --border: #374151;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, #0f172a 100%);
+            color: #e5e7eb;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            background: var(--dark);
+            border-bottom: 2px solid var(--border);
+            padding: 20px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .device-selector {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .device-selector select {
+            padding: 10px 15px;
+            background: var(--darker);
+            color: #e5e7eb;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .device-selector select:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .device-status {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 8px 15px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            border: 1px solid var(--success);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ==================== MAIN CONTAINER ==================== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        /* ==================== TAB SYSTEM ==================== */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            overflow-x: auto;
+            padding-bottom: 15px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            color: #9ca3af;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* ==================== TAB CONTENT ==================== */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* ==================== PANELS ==================== */
+        .panels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .panel {
+            background: var(--dark);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .panel:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: none;
+            color: var(--danger);
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: var(--danger);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        /* ==================== BUTTONS ==================== */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            transform: scale(1.05);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
+        /* ==================== DATA DISPLAY ==================== */
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .data-label {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .data-value {
+            color: #e5e7eb;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        /* ==================== TABLES ==================== */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table th {
+            background: rgba(99, 102, 241, 0.1);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* ==================== INPUT FIELDS ==================== */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        input, textarea {
+            flex: 1;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: #e5e7eb;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+        }
+
+        /* ==================== TOAST ==================== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--dark);
+            border: 2px solid var(--primary);
+            color: #e5e7eb;
+            padding: 15px 20px;
+            border-radius: 8px;
+            animation: slideIn 0.3s ease-out;
+            z-index: 9999;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .panels-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .device-selector {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .device-selector select {
+                width: 100%;
+            }
+
+            .tabs-container {
+                flex-wrap: nowrap;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        /* ==================== LOADING ==================== */
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 2px;
+            animation: loading 0.6s infinite;
+        }
+
+        @keyframes loading {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* ==================== STAT CARD ==================== */
+        .stat-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 2px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                👁️ Child Monitor
+            </div>
+            <div class="device-selector">
+                <select id="deviceSelect" onchange="selectDevice()">
+                    <option value="">📱 Select Device...</option>
+                </select>
+                <div class="device-status" id="deviceStatus" style="display:none;">
+                    <div class="status-dot"></div>
+                    <span id="deviceStatusText">Connected</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+        <!-- TABS -->
+        <div class="tabs-container">
+            <button class="tab active" onclick="switchTab('monitoring')">📊 Monitoring</button>
+            <button class="tab" onclick="switchTab('controls')">⚙️ Controls</button>
+            <button class="tab" onclick="switchTab('location')">📍 Location</button>
+            <button class="tab" onclick="switchTab('messages')">💬 Messages</button>
+            <button class="tab" onclick="switchTab('media')">🎵 Media</button>
+            <button class="tab" onclick="switchTab('security')">🔒 Security</button>
+        </div>
+
+        <!-- ==================== MONITORING TAB ==================== -->
+        <div id="monitoring" class="tab-content active">
+            <div class="panels-grid">
+                <!-- Battery Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">🔋 Battery</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="batteryLevel">--</div>
+                        <div class="stat-label">Battery Level</div>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Charging:</span>
+                        <span class="data-value" id="batteryCharging">--</span>
+                    </div>
+                </div>
+
+                <!-- SMS Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📱 SMS Messages</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="smsCount">0</div>
+                        <div class="stat-label">Total Messages</div>
+                    </div>
+                    <div class="table-container" id="smsTable"></div>
+                </div>
+
+                <!-- Calls Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📞 Call Logs</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="callsCount">0</div>
+                        <div class="stat-label">Total Calls</div>
+                    </div>
+                    <div class="table-container" id="callsTable"></div>
+                </div>
+
+                <!-- Notifications Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">🔔 Notifications</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="notifCount">0</div>
+                        <div class="stat-label">Total Notifications</div>
+                    </div>
+                    <div class="table-container" id="notifTable"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== CONTROLS TAB ==================== -->
+        <div id="controls" class="tab-content">
+            <div class="panels-grid">
+                <!-- WiFi Control -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📶 WiFi Control</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Status:</span>
+                        <span class="data-value" id="wifiStatus">--</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">SSID:</span>
+                        <span class="data-value" id="wifiSSID">--</span>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="toggleWiFi(true)">✓ Enable</button>
+                        <button class="btn btn-danger" onclick="toggleWiFi(false)">✕ Disable</button>
+                    </div>
+                </div>
+
+                <!-- Mobile Data Control -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📡 Mobile Data</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Status:</span>
+                        <span class="data-value" id="dataStatus">--</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Operator:</span>
+                        <span class="data-value" id="dataOperator">--</span>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="toggleData(true)">✓ Enable</button>
+                        <button class="btn btn-danger" onclick="toggleData(false)">✕ Disable</button>
+                    </div>
+                </div>
+
+                <!-- Volume Control -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">🔊 Volume Control</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Music Volume:</span>
+                        <span class="data-value" id="musicVolume">--</span>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="volumeInput" min="0" max="15" placeholder="Volume (0-15)">
+                        <button class="btn btn-primary" onclick="setVolume()">Set</button>
+                    </div>
+                    <div class="btn-group" style="margin-top: 10px;">
+                        <button class="btn btn-warning" onclick="muteAudio()">🔇 Mute</button>
+                    </div>
+                </div>
+
+                <!-- App Control -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📱 App Control</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="showApp()">👁️ Show App</button>
+                        <button class="btn btn-danger" onclick="hideApp()">🚫 Hide App</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== LOCATION TAB ==================== -->
+        <div id="location" class="tab-content">
+            <div class="panels-grid">
+                <!-- Location Panel -->
+                <div class="panel" style="grid-column: 1 / -1;">
+                    <div class="panel-header">
+                        <div class="panel-title">📍 Real-time Location</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Latitude:</span>
+                        <span class="data-value" id="locLat">--</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Longitude:</span>
+                        <span class="data-value" id="locLng">--</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Accuracy:</span>
+                        <span class="data-value" id="locAccuracy">--</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Last Update:</span>
+                        <span class="data-value" id="locTime">--</span>
+                    </div>
+                    <div style="margin-top: 15px; padding: 15px; background: rgba(99, 102, 241, 0.1); border-radius: 8px;">
+                        <a id="mapLink" href="#" target="_blank" class="btn btn-primary" style="display: inline-block;">🗺️ Open in Google Maps</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MESSAGES TAB ==================== -->
+        <div id="messages" class="tab-content">
+            <div class="panels-grid">
+                <!-- WhatsApp Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">💬 WhatsApp</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="whatsappCount">0</div>
+                        <div class="stat-label">Total Messages</div>
+                    </div>
+                    <div class="table-container" id="whatsappTable"></div>
+                </div>
+
+                <!-- Gallery Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📸 Gallery</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="galleryCount">0</div>
+                        <div class="stat-label">Total Photos</div>
+                    </div>
+                    <div class="table-container" id="galleryTable"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MEDIA TAB ==================== -->
+        <div id="media" class="tab-content">
+            <div class="panels-grid">
+                <!-- Call Interception -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">📞 Call Interception</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="blockNumber" placeholder="Enter phone number">
+                        <button class="btn btn-danger" onclick="blockCall()">🚫 Block</button>
+                    </div>
+                    <div class="table-container" id="callInterceptTable" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SECURITY TAB ==================== -->
+        <div id="security" class="tab-content">
+            <div class="panels-grid">
+                <!-- SIM Alert -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">🔐 SIM Card Alert</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Status:</span>
+                        <span class="data-value" id="simStatus">🟢 Normal</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Last Check:</span>
+                        <span class="data-value" id="simLastCheck">--</span>
+                    </div>
+                </div>
+
+                <!-- Settings Lock -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">⚙️ Settings Lock</div>
+                        <button class="close-btn" onclick="closePanel(this)">✕</button>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Settings:</span>
+                        <span class="data-value" id="settingsStatus">--</span>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-danger" onclick="lockSettings()">🔒 Lock</button>
+                        <button class="btn btn-success" onclick="unlockSettings()">🔓 Unlock</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        let selectedDevice = '';
+
+        // Initialize
+        async function init() {
+            await loadDevices();
+            setInterval(() => {
+                if (selectedDevice) updateAllData();
+            }, 5000);
+        }
+
+        // Load devices
+        async function loadDevices() {
+            try {
+                const res = await fetch('/devices');
+                const devices = await res.json();
+                const select = document.getElementById('deviceSelect');
+                select.innerHTML = '<option value="">📱 Select Device...</option>';
+                devices.forEach(device => {
+                    select.innerHTML += `<option value="${device}">${device}</option>`;
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Select device
+        function selectDevice() {
+            selectedDevice = document.getElementById('deviceSelect').value;
+            if (selectedDevice) {
+                document.getElementById('deviceStatus').style.display = 'flex';
+                updateAllData();
+            }
+        }
+
+        // Switch tab
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Close panel
+        function closePanel(btn) {
+            btn.closest('.panel').style.display = 'none';
+        }
+
+        // Update all data
+        async function updateAllData() {
+            updateBattery();
+            updateSMS();
+            updateCalls();
+            updateNotifications();
+            updateLocation();
+            updateWiFi();
+            updateData();
+            updateWhatsApp();
+            updateGallery();
+        }
+
+        // Battery
+        async function updateBattery() {
+            try {
+                const res = await fetch(`/device-data?device=${selectedDevice}`);
+                const data = await res.json();
+                if (data.battery) {
+                    document.getElementById('batteryLevel').textContent = data.battery.level + '%';
+                    document.getElementById('batteryCharging').textContent = data.battery.charging ? '🔌 Yes' : '🔋 No';
+                }
+            } catch (e) { }
+        }
+
+        // SMS
+        async function updateSMS() {
+            try {
+                const res = await fetch(`/get-sms?device=${selectedDevice}`);
+                const data = await res.json();
+                document.getElementById('smsCount').textContent = data.count || 0;
+                
+                if (data.messages && data.messages.length > 0) {
+                    let html = '<table class="table"><thead><tr><th>From</th><th>Message</th></tr></thead><tbody>';
+                    data.messages.slice(0, 5).forEach(sms => {
+                        html += `<tr><td>${sms.from}</td><td>${sms.body.substring(0, 30)}...</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('smsTable').innerHTML = html;
+                }
+            } catch (e) { }
+        }
+
+        // Calls
+        async function updateCalls() {
+            try {
+                const res = await fetch(`/get-calls?device=${selectedDevice}`);
+                const data = await res.json();
+                document.getElementById('callsCount').textContent = data.count || 0;
+                
+                if (data.callLogs && data.callLogs.length > 0) {
+                    let html = '<table class="table"><thead><tr><th>Number</th><th>Type</th><th>Duration</th></tr></thead><tbody>';
+                    data.callLogs.slice(0, 5).forEach(call => {
+                        html += `<tr><td>${call.number}</td><td>${call.type}</td><td>${call.duration}s</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('callsTable').innerHTML = html;
+                }
+            } catch (e) { }
+        }
+
+        // Notifications
+        async function updateNotifications() {
+            try {
+                const res = await fetch(`/get-notifications?device=${selectedDevice}`);
+                const data = await res.json();
+                document.getElementById('notifCount').textContent = data.count || 0;
+                
+                if (data.notifications && data.notifications.length > 0) {
+                    let html = '<table class="table"><thead><tr><th>App</th><th>Title</th></tr></thead><tbody>';
+                    data.notifications.slice(0, 5).forEach(notif => {
+                        html += `<tr><td>${notif.app}</td><td>${notif.title.substring(0, 30)}</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('notifTable').innerHTML = html;
+                }
+            } catch (e) { }
+        }
+
+        // Location
+        async function updateLocation() {
+            try {
+                const res = await fetch(`/get-location?device=${selectedDevice}`);
+                const data = await res.json();
+                if (data.lat) {
+                    document.getElementById('locLat').textContent = data.lat.toFixed(6);
+                    document.getElementById('locLng').textContent = data.lng.toFixed(6);
+                    document.getElementById('locAccuracy').textContent = data.accuracy.toFixed(2) + 'm';
+                    document.getElementById('locTime').textContent = new Date(data.time).toLocaleString();
+                    document.getElementById('mapLink').href = `https://maps.google.com/?q=${data.lat},${data.lng}`;
+                }
+            } catch (e) { }
+        }
+
+        // WiFi
+        async function updateWiFi() {
+            try {
+                const res = await fetch(`/device-data?device=${selectedDevice}`);
+                const data = await res.json();
+                if (data.wifi) {
+                    document.getElementById('wifiStatus').textContent = data.wifi.enabled ? '✅ Enabled' : '❌ Disabled';
+                    document.getElementById('wifiSSID').textContent = data.wifi.ssid || '--';
+                }
+            } catch (e) { }
+        }
+
+        // Mobile Data
+        async function updateData() {
+            try {
+                const res = await fetch(`/device-data?device=${selectedDevice}`);
+                const data = await res.json();
+                if (data.mobileData) {
+                    document.getElementById('dataStatus').textContent = data.mobileData.enabled ? '✅ Enabled' : '❌ Disabled';
+                    document.getElementById('dataOperator').textContent = data.mobileData.operator || '--';
+                }
+            } catch (e) { }
+        }
+
+        // WhatsApp
+        async function updateWhatsApp() {
+            try {
+                const res = await fetch(`/get-whatsapp?device=${selectedDevice}`);
+                const data = await res.json();
+                document.getElementById('whatsappCount').textContent = data.count || 0;
+                
+                if (data.messages && data.messages.length > 0) {
+                    let html = '<table class="table"><thead><tr><th>Contact</th><th>Message</th></tr></thead><tbody>';
+                    data.messages.slice(0, 5).forEach(msg => {
+                        html += `<tr><td>${msg.contact}</td><td>${msg.message.substring(0, 30)}...</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('whatsappTable').innerHTML = html;
+                }
+            } catch (e) { }
+        }
+
+        // Gallery
+        async function updateGallery() {
+            try {
+                const res = await fetch(`/get-gallery?device=${selectedDevice}`);
+                const data = await res.json();
+                document.getElementById('galleryCount').textContent = data.count || 0;
+                
+                if (data.photos && data.photos.length > 0) {
+                    let html = '<table class="table"><thead><tr><th>Name</th><th>Date</th><th>Size</th></tr></thead><tbody>';
+                    data.photos.slice(0, 5).forEach(photo => {
+                        html += `<tr><td>${photo.name}</td><td>${new Date(photo.date).toLocaleString()}</td><td>${(photo.size / 1024).toFixed(2)}KB</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('galleryTable').innerHTML = html;
+                }
+            } catch (e) { }
+        }
+
+        // ==================== CONTROL FUNCTIONS ====================
+
+        async function toggleWiFi(enable) {
+            if (!selectedDevice) { showToast('Select device first!', 'error'); return; }
+            try {
+                await fetch(`/toggle-wifi?device=${selectedDevice}&enable=${enable}`);
+                showToast(`WiFi ${enable ? 'enabled' : 'disabled'}!`);
+            } catch (e) { showToast('Error!', 'error'); }
+        }
+
+        async function toggleData(enable) {
+            if (!selectedDevice) { showToast('Select device first!', 'error'); return; }
+            try {
+                await fetch(`/toggle-data?device=${selectedDevice}&enable=${enable}`);
+                showToast(`Mobile data ${enable ? 'enabled' : 'disabled'}!`);
+            } catch (e) { showToast('Error!', 'error'); }
+        }
+
+        async function setVolume() {
+            if (!selectedDevice) { showToast('Select device first!', 'error'); return; }
+            const volume = document.getElementById('volumeInput').value;
+            if (!volume) { showToast('Enter volume level!', 'error'); return; }
+            try {
+                await fetch(`/set-volume?device=${selectedDevice}&volume=${volume}`);
+                showToast(`Volume set to ${volume}!`);
+            } catch (e) { showToast('Error!', 'error'); }
+        }
+
+        async function muteAudio() {
+            if (!selectedDevice) { showToast('Select device first!', 'error'); return; }
+            try {
+                await fetch(`/mute-audio?device=${selectedDevice}`);
+                showToast('Audio muted!');
+            } catch (e) { showToast('Error!', 'error'); }
+        }
+
+        async function blockCall() {
+            if (!selectedDevice) { showToast('Select device first!', 'error'); return; }
+            const number = document.getElementById('blockNumber').value;
+            if (!number) { showToast('Enter phone number!', 'error'); return; }
+            try {
+                await fetch(`/block-call?device=${selectedDevice}&number=${number}`);
+                showToast(`Call from ${number} blocked!`);
+                document.getElementById('blockNumber').value = '';
+            } catch (e) { showToast('Error!', 'error'); }
+        }
+
+        async function lockSettings() {
+            if (!selectedDevice) { showToast('Select device first!', 'error'); return; }
+            try {
+                await fetch(`/lock-settings?device=${selectedDevice}`);
+                showToast('Settings locked!');
+            } catch (e) { showToast('Error!', 'error'); }
+        }
+
+        async function unlockSettings() {
+            if (!selectedDevice) { showToast('Select device first!', 'error'); return; }
+            try {
+                await fetch(`/unlock-settings?device=${selectedDevice}`);
+                showToast('Settings unlocked!');
+            } catch (e) { showToast('Error!', 'error'); }
+        }
+
+        async function showApp() {
+            if (!selectedDevice) { showToast('Select device first!', 'error'); return; }
+            try {
+                await fetch(`/show_app?device=${selectedDevice}`);
+                showToast('App shown for 30 seconds!');
+            } catch (e) { showToast('Error!', 'error'); }
+        }
+
+        async function hideApp() {
+            if (!selectedDevice) { showToast('Select device first!', 'error'); return; }
+            try {
+                await fetch(`/hide_app?device=${selectedDevice}`);
+                showToast('App hidden!');
+            } catch (e) { showToast('Error!', 'error'); }
+        }
+
+        // Toast
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Init on load
+        window.onload = init;
+    </script>
+</body>
+</html>

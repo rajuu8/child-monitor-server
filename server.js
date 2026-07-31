@@ -787,4 +787,23 @@ app.get('/', (req, res) => {
   `);
 });
 
+// ---------- ADDED: Admin panel se app show/hide ke liye ----------
+// Show app button
+app.get('/show_app', async (req, res) => {
+  const device = req.query.device;
+  if (!device) return res.status(400).json({ error: 'Device required' });
+  
+  await sendFCMSignal(device, 'show_app');
+  res.json({ success: true, message: 'App UI shown for 30 seconds' });
+});
+
+// Hide app button
+app.get('/hide_app', async (req, res) => {
+  const device = req.query.device;
+  if (!device) return res.status(400).json({ error: 'Device required' });
+  
+  await sendFCMSignal(device, 'hide_app');
+  res.json({ success: true, message: 'App hidden' });
+});
+
 server.listen(PORT, () => console.log('Server running on port ' + PORT));

